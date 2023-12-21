@@ -52,48 +52,40 @@ services:
       - traefik.http.services.fhir-${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=8080
 
   keycloak:
-    image: quay.io/keycloak/keycloak:${KEYCLOAK_IMAGE_TAG:-15.0.2}
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_IMAGE_TAG:-22.0}
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.rule=Host(`keycloak.${BASE_DOMAIN:-localtest.me}`)"
-      - "traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.entrypoints=websecure"
-      - "traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.tls=true"
-      - "traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt"
-    entrypoint:
-      # override default keycloak docker entrypoint script with our own
-      - /opt/jboss/tools/docker-entrypoint-override.sh
-      - /opt/jboss/tools/docker-entrypoint.sh
+      - traefik.enable=true
+      - traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.rule=Host(`keycloak.${BASE_DOMAIN}`)
+      - traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.tls=true
+      - traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
     command:
-      - "-b"
-      - "0.0.0.0"
-      - "-Dkeycloak.migration.action=import"
-      # TODO use dir migration provider (`keycloak.migration.provider=dir`)
-      # https://github.com/keycloak/keycloak-documentation/blob/master/server_admin/topics/export-import.adoc
-      - "-Dkeycloak.migration.provider=singleFile"
-      - "-Dkeycloak.profile.feature.upload_scripts=enabled"
-      - "-Dkeycloak.migration.file=/opt/jboss/keycloak/realm-data.json"
-      - "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
+      # https://www.keycloak.org/server/importExport#_importing_a_realm_during_startup
+      # recent Keycloak releases do not allow importing the master realm on startup; use old properties as workaround
+      # https://github.com/keycloak/keycloak/issues/12544#issuecomment-1191846726
+      - -Dkeycloak.migration.action=import
+      - -Dkeycloak.migration.provider=dir
+      - -Dkeycloak.migration.dir=/opt/keycloak/data/import
+      - -Dkeycloak.migration.strategy=IGNORE_EXISTING
+      - -Dkeycloak.migration.replace-placeholders=true
+      - start
+      - --log-console-output=json
     environment:
-      KEYCLOAK_FRONTEND_URL: "https://keycloak.${BASE_DOMAIN:-localtest.me}/auth"
-      PROXY_ADDRESS_FORWARDING: "true"
-      DB_VENDOR: postgres
-      DB_ADDR: db
-      DB_PORT: 5432
-      DB_DATABASE: keycloak
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      # https://nvd.nist.gov/vuln/detail/CVE-2021-44228
-      LOG4J_FORMAT_MSG_NO_LOOKUPS: "true"
+      # https://www.keycloak.org/server/all-config
+      KC_DB: postgres
+      KC_DB_URL_HOST: db
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
 
-      # environment variables used to configure docker-entrypoint-override.sh
-      __KEYCLOAK_INPUT_CONFIG: /tmp/realm-data.json
-      __KEYCLOAK_OUTPUT_CONFIG: /opt/jboss/keycloak/realm-data.json
-    env_file:
-      - keycloak.env
+      # https://www.keycloak.org/server/reverseproxy
+      KC_PROXY: edge
+      # trust traefik Host header validation
+      KC_HOSTNAME_STRICT: "false"
+
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     volumes:
-      - "./config/keycloak/docker-entrypoint-override.sh:/opt/jboss/tools/docker-entrypoint-override.sh:ro"
-      - "./config/keycloak/realm-data.json:/tmp/realm-data.json"
-      - "./config/keycloak/jboss-logging-config.cli:/opt/jboss/startup-scripts/jboss-logging-config.cli"
+      - ./config/keycloak/import/:/opt/keycloak/data/import:ro
     depends_on:
       - db
     networks:

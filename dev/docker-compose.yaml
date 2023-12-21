@@ -52,6 +52,8 @@ services:
       - traefik.http.services.fhir-${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=8080
 
   keycloak:
+    # use tini as init
+    init: true
     image: quay.io/keycloak/keycloak:${KEYCLOAK_IMAGE_TAG:-22.0}
     labels:
       - traefik.enable=true

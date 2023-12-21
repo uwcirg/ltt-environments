@@ -630,7 +630,20 @@
     "xXSSProtection": "1; mode=block",
     "strictTransportSecurity": "max-age=31536000; includeSubDomains"
   },
-  "smtpServer": {},
+  "smtpServer": {
+    "replyToDisplayName": "CIRG Support",
+    "starttls": "true",
+    "auth": "true",
+    "envelopeFrom": "support@cirg.washington.edu",
+    "ssl": "",
+    "port": "587",
+    "host": "mail.cirg.washington.edu",
+    "replyTo": "help@cosri.on.spiceworks.com",
+    "from": "noreply@cirg.washington.edu",
+    "fromDisplayName": "CIRG Support",
+    "user": "${KEYCLOAK_EMAIL_USER}",
+    "password": "${KEYCLOAK_EMAIL_PASSWORD}"
+  },
   "eventsEnabled": false,
   "eventsListeners": [
     "jboss-logging"

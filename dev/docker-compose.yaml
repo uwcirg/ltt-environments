@@ -86,6 +86,8 @@ services:
 
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+    env_file:
+      - keycloak.env
     volumes:
       - ./config/keycloak/import/:/opt/keycloak/data/import:ro
     depends_on:

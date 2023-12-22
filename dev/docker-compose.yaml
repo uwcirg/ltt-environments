@@ -34,6 +34,7 @@ services:
       - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
 
       # cPRO does not EXPOSE the ports it listens on, requiring explicit traefik configuration
+      # TODO add EXPOSE directive to Dockerfiles
       - traefik.http.services.cpro-${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=80
     networks:
       - ingress

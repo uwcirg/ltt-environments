@@ -10,13 +10,11 @@ services:
     # workaround hardcoded hostname for mysql
     # TODO make mysql hostname configurable
     entrypoint: sh
-    command:
-     -c '
+    command: -c '
        wait-for-it --host=mysql --port=3306 --strict --
        cake initialize_database &&
        cake less generate &&
-       apache2-foreground
-     '
+       apache2-foreground'
     depends_on:
       - mysql
     env_file:

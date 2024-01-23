@@ -8,6 +8,8 @@ services:
       SERVER_NAME: cpro.${BASE_DOMAIN}
       HTTPS: "true"
       OIDC_CLIENT_ID: ltt_cpro
+      # TODO set to authenticated endpoint after jwt-proxy added
+      FHIR_R4_SERVER_ENDPOINT: http://fhir:8080/fhir/
     # workaround hardcoded hostname for mysql
     # TODO make mysql hostname configurable
     entrypoint: sh

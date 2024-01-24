@@ -147,6 +147,63 @@
          "offline_access",
          "microprofile-jwt"
        ]
+     },
+     {
+       "clientId": "ltt_cpro",
+       "name": "cPRO Let's Talk Tech",
+       "description": "cPRO configured as inform project",
+       "rootUrl": "",
+       "adminUrl": "",
+       "baseUrl": "",
+       "surrogateAuthRequired": false,
+       "enabled": true,
+       "alwaysDisplayInConsole": false,
+       "clientAuthenticatorType": "client-secret",
+       "secret": "${KEYCLOAK_LTT_CPRO_CLIENT_SECRET}",
+       "redirectUris": [
+         "/*"
+       ],
+       "webOrigins": [
+         "/*"
+       ],
+       "notBefore": 0,
+       "bearerOnly": false,
+       "consentRequired": false,
+       "standardFlowEnabled": true,
+       "implicitFlowEnabled": false,
+       "directAccessGrantsEnabled": false,
+       "serviceAccountsEnabled": false,
+       "publicClient": false,
+       "frontchannelLogout": true,
+       "protocol": "openid-connect",
+       "attributes": {
+         "oidc.ciba.grant.enabled": "false",
+         "oauth2.device.authorization.grant.enabled": "false",
+         "client.secret.creation.time": "1703195110",
+         "backchannel.logout.session.required": "true",
+         "backchannel.logout.revoke.offline.tokens": "false"
+       },
+       "authenticationFlowBindingOverrides": {},
+       "fullScopeAllowed": true,
+       "nodeReRegistrationTimeout": -1,
+       "defaultClientScopes": [
+         "web-origins",
+         "acr",
+         "roles",
+         "profile",
+         "email"
+       ],
+       "optionalClientScopes": [
+         "address",
+         "phone",
+         "offline_access",
+         "microprofile-jwt"
+       ],
+       "access": {
+         "view": true,
+         "configure": true,
+         "manage": true
+       }
      }
   ],
   "clientScopes": [

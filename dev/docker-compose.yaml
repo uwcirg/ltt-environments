@@ -1,6 +1,63 @@
 ---
 version: "3.7"
 services:
+  cpro:
+    image: ${DOCKER_REPOSITORY-glcr.cirg.uw.edu/svn/dhair2}:${CPRO_IMAGE_TAG:-master}
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-mysql://mysql:cPR0health@CIRG@mysql:3306/cpro}
+      SERVER_NAME: cpro.${BASE_DOMAIN}
+      HTTPS: "true"
+      OIDC_CLIENT_ID: ltt_cpro
+      # TODO set to authenticated endpoint after jwt-proxy added
+      FHIR_R4_SERVER_ENDPOINT: http://fhir:8080/fhir/
+    # workaround hardcoded hostname for mysql
+    # TODO make mysql hostname configurable
+    entrypoint: sh
+    command: -c '
+       wait-for-it --host=mysql --port=3306 --strict --
+       cake initialize_database &&
+       cake less generate &&
+       apache2-foreground'
+    depends_on:
+      - mysql
+    env_file:
+      - cpro.env
+    volumes:
+      - secure-data:/var/www/html/app/securedata
+      - tmp-data:/var/www/html/app/tmp
+    labels:
+      - traefik.enable=true
+      # Traefik will route requests with Host matching the SERVER_NAME environment variable (see .env)
+      - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.rule=Host(`cpro.${BASE_DOMAIN}`)
+
+      - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.tls=true
+      - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+
+      # cPRO does not EXPOSE the ports it listens on, requiring explicit traefik configuration
+      # TODO add EXPOSE directive to Dockerfiles
+      - traefik.http.services.cpro-${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=80
+    networks:
+      - ingress
+      - internal
+  mysql:
+    image: mariadb:10.6
+    environment:
+      MYSQL_ROOT_PASSWORD: cPR0health@CIRG
+      MYSQL_DATABASE: cpro
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: cPR0health@CIRG
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command:
+      - mysqld
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb_compression_default=1
+      - --sql-mode=
+    networks:
+      - internal
+
   db:
     image: postgres:${POSTGRES_IMAGE_TAG:-16}
     environment:
@@ -12,7 +69,6 @@ services:
       - ./config/db:/docker-entrypoint-initdb.d:ro
     networks:
       - internal
-
   fhir:
     image: hapiproject/hapi:${FHIR_IMAGE_TAG:-v6.8.3}
     environment:
@@ -121,8 +177,10 @@ services:
       - ingress
 
 volumes:
+  mysql-data: {}
+  secure-data: {}
   db-data: {}
-
+  tmp-data: {}
 networks:
   # internal network for backing services
   internal:

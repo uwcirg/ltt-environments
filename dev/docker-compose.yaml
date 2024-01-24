@@ -7,9 +7,12 @@ services:
       DATABASE_URL: ${DATABASE_URL:-mysql://mysql:cPR0health@CIRG@mysql:3306/cpro}
       SERVER_NAME: cpro.${BASE_DOMAIN}
       HTTPS: "true"
+      INSTANCE_ID: inform
       OIDC_CLIENT_ID: ltt_cpro
+      # Keycloak base URL; discover OIDC config in .well-known/openid-configuration
+      OIDC_AUTHZ_SERVER: https://keycloak.${BASE_DOMAIN}/auth/realms/ltt
       # TODO set to authenticated endpoint after jwt-proxy added
-      FHIR_R4_SERVER_ENDPOINT: http://fhir:8080/fhir/
+      FHIR_R4_SERVER_ENDPOINT: http://fhir-internal:8080/fhir/
     # workaround hardcoded hostname for mysql
     # TODO make mysql hostname configurable
     entrypoint: sh

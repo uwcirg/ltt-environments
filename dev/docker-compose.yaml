@@ -96,6 +96,30 @@ services:
       - ingress
       - internal
 
+  shl-creator:
+    image: ghcr.io/uwcirg/shl-ips:${SHL_CREATOR_IMAGE_TAG:-latest}
+    environment:
+      SOF_CLIENT_ID: shl_creator
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.rule=Host(`shl-creator.${BASE_DOMAIN}`)
+      - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.tls=true
+      - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+    networks:
+      - ingress
+
+  shl-server:
+    image: ghcr.io/uwcirg/smart.health.links-server:${SHL_SERVER_IMAGE_TAG:-latest}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.rule=Host(`shl-server.${BASE_DOMAIN}`)
+      - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.tls=true
+      - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+    networks:
+      - ingress
+
 volumes:
   db-data: {}
 

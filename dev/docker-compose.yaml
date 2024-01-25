@@ -10,7 +10,7 @@ services:
       INSTANCE_ID: inform
       OIDC_CLIENT_ID: ltt_cpro
       # Keycloak base URL; discover OIDC config in .well-known/openid-configuration
-      OIDC_AUTHZ_SERVER: https://keycloak.${BASE_DOMAIN}/auth/realms/ltt
+      OIDC_AUTHZ_SERVER: https://keycloak.${BASE_DOMAIN}/realms/ltt
       # TODO set to authenticated endpoint after jwt-proxy added
       FHIR_R4_SERVER_ENDPOINT: http://fhir-internal:8080/fhir/
     # workaround hardcoded hostname for mysql
@@ -160,6 +160,8 @@ services:
     image: ghcr.io/uwcirg/shl-ips:${SHL_CREATOR_IMAGE_TAG:-latest}
     environment:
       SOF_CLIENT_ID: shl_creator
+      # Keycloak base URL; discover OIDC config in .well-known/openid-configuration
+      SOF_AUTHZ_SERVER: https://keycloak.${BASE_DOMAIN}/realms/ltt
     labels:
       - traefik.enable=true
       - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.rule=Host(`shl-creator.${BASE_DOMAIN}`)

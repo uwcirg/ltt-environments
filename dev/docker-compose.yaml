@@ -1,6 +1,66 @@
 ---
 version: "3.7"
 services:
+  cpro:
+    image: ${DOCKER_REPOSITORY-glcr.cirg.uw.edu/svn/dhair2}:${CPRO_IMAGE_TAG:-master}
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-mysql://mysql:cPR0health@CIRG@mysql:3306/cpro}
+      SERVER_NAME: cpro.${BASE_DOMAIN}
+      HTTPS: "true"
+      INSTANCE_ID: inform
+      OIDC_CLIENT_ID: ltt_cpro
+      # Keycloak base URL; discover OIDC config in .well-known/openid-configuration
+      OIDC_AUTHZ_SERVER: https://keycloak.${BASE_DOMAIN}/auth/realms/ltt
+      # TODO set to authenticated endpoint after jwt-proxy added
+      FHIR_R4_SERVER_ENDPOINT: http://fhir-internal:8080/fhir/
+    # workaround hardcoded hostname for mysql
+    # TODO make mysql hostname configurable
+    entrypoint: sh
+    command: -c '
+       wait-for-it --host=mysql --port=3306 --strict --
+       cake initialize_database &&
+       cake less generate &&
+       apache2-foreground'
+    depends_on:
+      - mysql
+    env_file:
+      - cpro.env
+    volumes:
+      - secure-data:/var/www/html/app/securedata
+      - tmp-data:/var/www/html/app/tmp
+    labels:
+      - traefik.enable=true
+      # Traefik will route requests with Host matching the SERVER_NAME environment variable (see .env)
+      - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.rule=Host(`cpro.${BASE_DOMAIN}`)
+
+      - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.tls=true
+      - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+
+      # cPRO does not EXPOSE the ports it listens on, requiring explicit traefik configuration
+      # TODO add EXPOSE directive to Dockerfiles
+      - traefik.http.services.cpro-${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=80
+    networks:
+      - ingress
+      - internal
+  mysql:
+    image: mariadb:10.6
+    environment:
+      MYSQL_ROOT_PASSWORD: cPR0health@CIRG
+      MYSQL_DATABASE: cpro
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: cPR0health@CIRG
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command:
+      - mysqld
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb_compression_default=1
+      - --sql-mode=
+    networks:
+      - internal
+
   db:
     image: postgres:${POSTGRES_IMAGE_TAG:-16}
     environment:
@@ -12,7 +72,6 @@ services:
       - ./config/db:/docker-entrypoint-initdb.d:ro
     networks:
       - internal
-
   fhir:
     image: hapiproject/hapi:${FHIR_IMAGE_TAG:-v6.8.3}
     environment:
@@ -52,57 +111,79 @@ services:
       - traefik.http.services.fhir-${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=8080
 
   keycloak:
-    image: quay.io/keycloak/keycloak:${KEYCLOAK_IMAGE_TAG:-15.0.2}
+    # use tini as init
+    init: true
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_IMAGE_TAG:-22.0}
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.rule=Host(`keycloak.${BASE_DOMAIN:-localtest.me}`)"
-      - "traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.entrypoints=websecure"
-      - "traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.tls=true"
-      - "traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt"
-    entrypoint:
-      # override default keycloak docker entrypoint script with our own
-      - /opt/jboss/tools/docker-entrypoint-override.sh
-      - /opt/jboss/tools/docker-entrypoint.sh
+      - traefik.enable=true
+      - traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.rule=Host(`keycloak.${BASE_DOMAIN}`)
+      - traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.tls=true
+      - traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
     command:
-      - "-b"
-      - "0.0.0.0"
-      - "-Dkeycloak.migration.action=import"
-      # TODO use dir migration provider (`keycloak.migration.provider=dir`)
-      # https://github.com/keycloak/keycloak-documentation/blob/master/server_admin/topics/export-import.adoc
-      - "-Dkeycloak.migration.provider=singleFile"
-      - "-Dkeycloak.profile.feature.upload_scripts=enabled"
-      - "-Dkeycloak.migration.file=/opt/jboss/keycloak/realm-data.json"
-      - "-Dkeycloak.migration.strategy=IGNORE_EXISTING"
+      # https://www.keycloak.org/server/importExport#_importing_a_realm_during_startup
+      # recent Keycloak releases do not allow importing the master realm on startup; use old properties as workaround
+      # https://github.com/keycloak/keycloak/issues/12544#issuecomment-1191846726
+      - -Dkeycloak.migration.action=import
+      - -Dkeycloak.migration.provider=dir
+      - -Dkeycloak.migration.dir=/opt/keycloak/data/import
+      - -Dkeycloak.migration.strategy=IGNORE_EXISTING
+      - -Dkeycloak.migration.replace-placeholders=true
+      - start
+      - --log-console-output=json
     environment:
-      KEYCLOAK_FRONTEND_URL: "https://keycloak.${BASE_DOMAIN:-localtest.me}/auth"
-      PROXY_ADDRESS_FORWARDING: "true"
-      DB_VENDOR: postgres
-      DB_ADDR: db
-      DB_PORT: 5432
-      DB_DATABASE: keycloak
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      # https://nvd.nist.gov/vuln/detail/CVE-2021-44228
-      LOG4J_FORMAT_MSG_NO_LOOKUPS: "true"
+      # https://www.keycloak.org/server/all-config
+      KC_DB: postgres
+      KC_DB_URL_HOST: db
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
 
-      # environment variables used to configure docker-entrypoint-override.sh
-      __KEYCLOAK_INPUT_CONFIG: /tmp/realm-data.json
-      __KEYCLOAK_OUTPUT_CONFIG: /opt/jboss/keycloak/realm-data.json
+      # https://www.keycloak.org/server/reverseproxy
+      KC_PROXY: edge
+      # trust traefik Host header validation
+      KC_HOSTNAME_STRICT: "false"
+
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     env_file:
       - keycloak.env
     volumes:
-      - "./config/keycloak/docker-entrypoint-override.sh:/opt/jboss/tools/docker-entrypoint-override.sh:ro"
-      - "./config/keycloak/realm-data.json:/tmp/realm-data.json"
-      - "./config/keycloak/jboss-logging-config.cli:/opt/jboss/startup-scripts/jboss-logging-config.cli"
+      - ./config/keycloak/import/:/opt/keycloak/data/import:ro
     depends_on:
       - db
     networks:
       - ingress
       - internal
 
-volumes:
-  db-data: {}
+  shl-creator:
+    image: ghcr.io/uwcirg/shl-ips:${SHL_CREATOR_IMAGE_TAG:-latest}
+    environment:
+      SOF_CLIENT_ID: shl_creator
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.rule=Host(`shl-creator.${BASE_DOMAIN}`)
+      - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.tls=true
+      - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+    networks:
+      - ingress
 
+  shl-server:
+    image: ghcr.io/uwcirg/smart.health.links-server:${SHL_SERVER_IMAGE_TAG:-latest}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.rule=Host(`shl-server.${BASE_DOMAIN}`)
+      - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.tls=true
+      - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+    networks:
+      - ingress
+
+volumes:
+  mysql-data: {}
+  secure-data: {}
+  db-data: {}
+  tmp-data: {}
 networks:
   # internal network for backing services
   internal:

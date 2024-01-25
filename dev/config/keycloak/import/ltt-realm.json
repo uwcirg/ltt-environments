@@ -752,6 +752,7 @@
     "user": "${KEYCLOAK_EMAIL_USER}",
     "password": "${KEYCLOAK_EMAIL_PASSWORD}"
   },
+  "loginTheme": "ltt",
   "eventsEnabled": false,
   "eventsListeners": [
     "jboss-logging"

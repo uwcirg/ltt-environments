@@ -156,6 +156,29 @@ services:
       - ingress
       - internal
 
+  fhir-auth:
+    image: ghcr.io/uwcirg/jwt-proxy:${PROXY_IMAGE_TAG:-latest}
+    env_file:
+      fhir-auth.env
+    environment:
+      UPSTREAM_SERVER: http://fhir-internal:8080
+      OIDC_AUTHORIZE_URL: https://keycloak.${BASE_DOMAIN}/auth/realms/ltt/protocol/openid-connect/auth
+      OIDC_TOKEN_URI: https://keycloak.${BASE_DOMAIN}/auth/realms/ltt/protocol/openid-connect/token
+      OIDC_TOKEN_INTROSPECTION_URI: https://keycloak.${BASE_DOMAIN}/auth/realms/ltt/protocol/openid-connect/token/introspect
+      JWKS_URL: https://keycloak.${BASE_DOMAIN}/auth/realms/ltt/protocol/openid-connect/certs
+      PATH_WHITELIST: /fhir/metadata,/fhir/.well-known/smart-configuration
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.fhir-auth-${COMPOSE_PROJECT_NAME}.rule=Host(`fhir-auth.${BASE_DOMAIN}`)
+      - traefik.http.routers.fhir-auth-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.fhir-auth-${COMPOSE_PROJECT_NAME}.tls=true
+      - traefik.http.routers.fhir-auth-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+    depends_on:
+      - fhir
+    networks:
+      - ingress
+      - internal
+
   shl-creator:
     image: ghcr.io/uwcirg/shl-ips:${SHL_CREATOR_IMAGE_TAG:-latest}
     environment:

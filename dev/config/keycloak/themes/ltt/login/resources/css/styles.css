@@ -6,16 +6,22 @@
   --button-primary-color: #af4507;
   --button-primary-hover-color: #883505;
   --title-color: #325c33;
-  --label-color: #3b3a3a;
+  --label-color: #71757b;
   --link-color: #1994d0;
   --link-hover-color: #126994;
   --highlight-bg-color: #f9e4d3;
   --text-default-color: #444;
+  --default-body-font-size: 16px;
 }
 body {
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-  font-size: 16px;
+  font-size: var(--default-body-font-size);
 }
+.pf-c-alert__title {
+  font-size: var(--default-body-font-size);
+  line-height: 1.4;
+}
+
 html.login-pf {
   background: var(--body-bg-color);
 }
@@ -158,6 +164,10 @@ video {
   vertical-align: baseline;
 }
 
+ul, p {
+  line-height: 1.4;
+}
+
 .alert {
   padding-left: 16px;
   padding-right: 16px;
@@ -171,7 +181,7 @@ input[type="password"] {
   width: 100%;
   height: 32px;
   padding: 2px 6px;
-  font-size: 16px;
+  font-size: var(--default-body-font-size);
   line-height: 1.66666667;
   color: #363636;
   background-color: #fff;
@@ -192,7 +202,7 @@ input[type="submit"] {
   background-color: var(--primary-color);
   padding: 16px;
   width: 100%;
-  font-size: 16px;
+  font-size: var(--default-body-font-size);
   color: #fff;
   box-sizing: border-box;
   box-shadow: none;
@@ -244,7 +254,7 @@ label {
   font-family: "Roboto", "Helvetica", "Arial", sans-serif;
   background-color: var(--body-bg-color);
   background-image: none;
-  font-size: 16px;
+  font-size: var(--default-body-font-size);
 }
 .login-pf-page .card-pf {
   margin-bottom: 32px;
@@ -253,6 +263,10 @@ label {
   .login-pf-page .card-pf {
     padding: 16px 32px 48px 32px;
   }
+}
+.login-pf-page .card-pf p {
+  font-size: var(--default-body-font-size);
+  line-height: 1.4;
 }
 @media (min-width: 768px) {
   .login-pf-page .login-pf-header {
@@ -274,6 +288,8 @@ label {
   background-color: transparent;
   padding: 0;
   text-align: left;
+  font-size: var(--default-body-font-size);
+  line-height: 1.4;
 }
 #kc-header-wrapper {
   font-weight: 500;

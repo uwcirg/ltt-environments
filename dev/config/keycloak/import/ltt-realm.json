@@ -28,12 +28,12 @@
   "enabled": true,
   "sslRequired": "external",
   "registrationAllowed": false,
-  "registrationEmailAsUsername": false,
+  "registrationEmailAsUsername": true,
   "rememberMe": false,
   "verifyEmail": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
-  "resetPasswordAllowed": false,
+  "resetPasswordAllowed": true,
   "editUsernameAllowed": false,
   "bruteForceProtected": false,
   "permanentLockout": false,
@@ -114,7 +114,9 @@
        "redirectUris": [
          "*"
        ],
-       "webOrigins": [],
+       "webOrigins": [
+         "*"
+       ],
        "notBefore": 0,
        "bearerOnly": false,
        "consentRequired": false,

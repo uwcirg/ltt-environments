@@ -66,6 +66,7 @@
     "totpAppGoogleName",
     "totpAppMicrosoftAuthenticatorName"
   ],
+  "passwordPolicy": "length(8) and upperCase(1) and lowerCase(1) and digits(1) and passwordHistory(3)",
   "webAuthnPolicyRpEntityName": "keycloak",
   "webAuthnPolicySignatureAlgorithms": [
     "ES256"

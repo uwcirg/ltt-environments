@@ -755,6 +755,7 @@
     "password": "${KEYCLOAK_EMAIL_PASSWORD}"
   },
   "loginTheme": "ltt",
+  "emailTheme": "ltt",
   "eventsEnabled": false,
   "eventsListeners": [
     "jboss-logging"

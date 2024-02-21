@@ -10,8 +10,12 @@ services:
       INSTANCE_ID: inform
       SHL_MANAGER_URL: https://shl-creator.${BASE_DOMAIN}/share
       OIDC_CLIENT_ID: ltt_cpro
-      # Keycloak base URL; discover OIDC config in .well-known/openid-configuration
+      # Keycloak base URL; TODO discover OIDC config from .well-known/openid-configuration
       OIDC_AUTHZ_SERVER: https://keycloak.${BASE_DOMAIN}/realms/ltt
+
+      OIDC_AUTHORIZATION_ENDPOINT: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/auth
+      OIDC_TOKEN_ENDPOINT: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/token
+      OIDC_USERINFO_ENDPOINT: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/userinfo
       # TODO set to authenticated endpoint after jwt-proxy added
       FHIR_R4_SERVER_ENDPOINT: http://fhir-internal:8080/fhir/
     # workaround hardcoded hostname for mysql

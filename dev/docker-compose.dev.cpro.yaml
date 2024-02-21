@@ -1,0 +1,40 @@
+# docker-compose development overrides
+---
+version: '3.9'
+services:
+  cpro:
+    environment:
+      SYSTEM_TYPE: development
+      # overwrite VERSION_STRING environment variable baked into image
+      # code baked into image may not match bind-mounted code
+      VERSION_STRING: local
+    entrypoint: sh
+    # update uid of www-data in container to match account on host
+    command:
+     -c '
+      usermod -o -u $${UID:-1000} $${APACHE_RUN_USER} &&
+      apache2-foreground
+     '
+    volumes:
+      # Allow live editing of code
+      # Do not mount empty app/Vendor from host (maintain dependencies installed by `composer` at image build-time)
+      # Mount sibling directories of app/Vendor (except app/Vendor) as a bind mount
+      - ${CPRO_CHECKOUT_DIR}/app/Config:/var/www/html/app/Config
+      - ${CPRO_CHECKOUT_DIR}/app/Controller:/var/www/html/app/Controller
+      - ${CPRO_CHECKOUT_DIR}/app/Console:/var/www/html/app/Console
+      - ${CPRO_CHECKOUT_DIR}/app/db:/var/www/html/app/db
+      - ${CPRO_CHECKOUT_DIR}/app/less:/var/www/html/app/less
+      - ${CPRO_CHECKOUT_DIR}/app/Lib:/var/www/html/app/Lib
+      - ${CPRO_CHECKOUT_DIR}/app/Locale:/var/www/html/app/Locale
+      - ${CPRO_CHECKOUT_DIR}/app/Model:/var/www/html/app/Model
+      - ${CPRO_CHECKOUT_DIR}/app/system_tools:/var/www/html/app/system_tools
+      - ${CPRO_CHECKOUT_DIR}/app/View:/var/www/html/app/View
+      - ${CPRO_CHECKOUT_DIR}/app/webroot:/var/www/html/app/webroot
+
+      # mount config files that are baked into docker image, but not in a fresh checkout
+      - ${CPRO_CHECKOUT_DIR}/app/Config/database.env.php:/var/www/html/app/Config/database.php
+      - ${CPRO_CHECKOUT_DIR}/app/Config/email.php.default:/var/www/html/app/Config/email.php
+      - ${CPRO_CHECKOUT_DIR}/app/Config/dhair/dhair_oauth_ignore.env.php:/var/www/html/app/Config/dhair/dhair_oauth.php
+
+      # Enable developer only overrides
+      - ${CPRO_CHECKOUT_DIR}/docker/config/php/cpro.dev.ini:/etc/php/5.6/apache2/conf.d/cpro.dev.ini

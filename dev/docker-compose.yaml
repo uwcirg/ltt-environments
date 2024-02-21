@@ -8,6 +8,7 @@ services:
       SERVER_NAME: cpro.${BASE_DOMAIN}
       HTTPS: "true"
       INSTANCE_ID: inform
+      SHL_MANAGER_URL: https://shl-creator.${BASE_DOMAIN}/share
       OIDC_CLIENT_ID: ltt_cpro
       # Keycloak base URL; discover OIDC config in .well-known/openid-configuration
       OIDC_AUTHZ_SERVER: https://keycloak.${BASE_DOMAIN}/realms/ltt

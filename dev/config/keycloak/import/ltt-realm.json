@@ -51,6 +51,19 @@
     "clientRole": false,
     "containerId": "25facb13-fdb5-46cd-b66d-fa9305652f1a"
   },
+  "roles": {
+    "realm": [
+      {
+        "id": "5614c921-f5f1-44b8-a04a-fc3b06dec10f",
+        "name": "staff-realm-role",
+        "description": "realm-specific staff role",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "25facb13-fdb5-46cd-b66d-fa9305652f1a",
+        "attributes": {}
+      }
+    ]
+  },
   "requiredCredentials": [
     "password"
   ],

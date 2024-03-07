@@ -18,6 +18,8 @@ services:
       OIDC_USERINFO_ENDPOINT: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/userinfo
       # TODO set to authenticated endpoint after jwt-proxy added
       FHIR_R4_SERVER_ENDPOINT: http://fhir-internal:8080/fhir/
+      # This serves as both a switch to include a second FHIR 'identifier', and as the 'system' to use for it.
+      FHIR_R4_EXTERNAL_ID_SYSTEM: https://keycloak.ltt.cirg.uw.edu
     # workaround hardcoded hostname for mysql
     # TODO make mysql hostname configurable
     entrypoint: sh

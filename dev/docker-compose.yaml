@@ -78,6 +78,10 @@ services:
       - db-data:/var/lib/postgresql/data
       # mount db creation script in place for bootstrap
       - ./config/db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: pg_isready
+      start_period: 2m
+      timeout: 5s
     networks:
       - internal
   fhir:
@@ -95,7 +99,19 @@ services:
       hapi.fhir.client_id_strategy: ANY
       # enable all endpoints for operational data
       management.endpoints.web.exposure.include: "*"
-
+    volumes:
+      - ./config/fhir/application.yaml:/opt/application.yaml:ro
+      # docker image does not contain any appropriate HTTP client
+      # use busybox from host as `wget`
+      - /usr/bin/busybox:/usr/bin/wget:ro
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --spider
+        - --quiet
+        - http://localhost:8080/actuator/health
+      start_period: 2m
     depends_on:
       - db
     networks:

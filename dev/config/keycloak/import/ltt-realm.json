@@ -144,7 +144,10 @@
        "optionalClientScopes": [
          "address",
          "phone",
+         "launch",
          "offline_access",
+         "online_access",
+         "patient/*.read",
          "microprofile-jwt"
        ]
      },
@@ -306,6 +309,16 @@
       "protocol": "openid-connect",
       "attributes": {
         "consent.screen.text": "${offlineAccessScopeConsentText}",
+        "display.on.consent.screen": "true"
+      }
+    },
+    {
+      "id": "b1a46bef-7912-4ea4-acd9-b06c07ee8b34",
+      "name": "online_access",
+      "description": "OpenID Connect built-in scope: online_access",
+      "protocol": "openid-connect",
+      "attributes": {
+        "consent.screen.text": "${onlineAccessScopeConsentText}",
         "display.on.consent.screen": "true"
       }
     },
@@ -746,6 +759,9 @@
   ],
   "defaultOptionalClientScopes": [
     "offline_access",
+    "online_access",
+    "launch",
+    "patient/*.read",
     "address",
     "phone",
     "microprofile-jwt"

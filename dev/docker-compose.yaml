@@ -198,6 +198,8 @@ services:
 
   shl-creator:
     image: ghcr.io/uwcirg/shl-ips:${SHL_CREATOR_IMAGE_TAG:-latest}
+    env_file:
+      shl-creator.env
     volumes:
       - ./config/shl-creator/env.js:/opt/app/build/env.js:ro
     labels:

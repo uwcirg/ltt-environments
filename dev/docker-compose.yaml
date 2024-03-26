@@ -197,7 +197,7 @@ services:
       - internal
 
   shl-creator:
-    image: ghcr.io/uwcirg/shl-ips:${SHL_CREATOR_IMAGE_TAG:-latest}
+    image: ghcr.io/uwcirg/shl-ltt:${SHL_CREATOR_IMAGE_TAG:-latest}
     volumes:
       - ./config/shl-creator/env.js:/opt/app/build/env.js:ro
     labels:
@@ -210,7 +210,7 @@ services:
       - ingress
 
   shl-server:
-    image: ghcr.io/uwcirg/smart.health.links-server:${SHL_SERVER_IMAGE_TAG:-latest}
+    image: ghcr.io/uwcirg/shl-ltt-server:${SHL_SERVER_IMAGE_TAG:-latest}
     environment:
       PUBLIC_URL: https://shl-server.${BASE_DOMAIN}
     labels:

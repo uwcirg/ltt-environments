@@ -219,6 +219,8 @@ services:
       - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
       - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.tls=true
       - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+    volumes:
+      - shl-server-data:/app/db
     networks:
       - ingress
 
@@ -227,6 +229,7 @@ volumes:
   secure-data: {}
   db-data: {}
   tmp-data: {}
+  shl-server-data: {}
 networks:
   # internal network for backing services
   internal:

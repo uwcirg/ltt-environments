@@ -160,7 +160,10 @@
        "optionalClientScopes": [
          "address",
          "phone",
+         "launch",
          "offline_access",
+         "online_access",
+         "patient/*.read",
          "microprofile-jwt"
        ]
      },
@@ -325,6 +328,16 @@
       }
     },
     {
+      "id": "b1a46bef-7912-4ea4-acd9-b06c07ee8b34",
+      "name": "online_access",
+      "description": "OpenID Connect built-in scope: online_access",
+      "protocol": "openid-connect",
+      "attributes": {
+        "consent.screen.text": "${onlineAccessScopeConsentText}",
+        "display.on.consent.screen": "true"
+      }
+    },
+    {
       "id": "dbbeab4e-2685-4f20-bfba-c0472c46922b",
       "name": "microprofile-jwt",
       "description": "Microprofile - JWT built-in scope",
@@ -365,6 +378,28 @@
           }
         }
       ]
+    },
+    {
+      "id": "18295a0a-daaf-448d-8793-cb39b36703cd",
+      "_comment": "http://www.hl7.org/fhir/smart-app-launch/scopes-and-launch-context/",
+      "name": "patient/*.read",
+      "description": "SoF: Read all data for launch patient",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true"
+      }
+    },
+    {
+      "id": "78ad99cd-c336-42ed-a55a-ddbe6119c928",
+      "_comment": "http://www.hl7.org/fhir/smart-app-launch/scopes-and-launch-context/",
+      "name": "launch",
+      "description": "SoF: launch token",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true"
+      }
     },
     {
       "id": "0e57bc1e-d2a9-4580-ad49-863c2ce868ac",
@@ -739,6 +774,9 @@
   ],
   "defaultOptionalClientScopes": [
     "offline_access",
+    "online_access",
+    "launch",
+    "patient/*.read",
     "address",
     "phone",
     "microprofile-jwt"

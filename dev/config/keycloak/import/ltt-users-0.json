@@ -24,7 +24,8 @@
       "disableableCredentialTypes": [],
       "requiredActions": [],
       "realmRoles": [
-        "default-roles-ltt"
+        "default-roles-ltt",
+        "patient-realm-role"
       ],
       "notBefore": 0,
       "groups": []

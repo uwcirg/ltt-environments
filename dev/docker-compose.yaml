@@ -198,8 +198,8 @@ services:
 
   shl-creator:
     image: ghcr.io/uwcirg/shl-ltt:${SHL_CREATOR_IMAGE_TAG:-latest}
-    volumes:
-      - ./config/shl-creator/env.js:/opt/app/build/env.js:ro
+    env_file:
+      shl-creator.env
     labels:
       - traefik.enable=true
       - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.rule=Host(`shl-creator.${BASE_DOMAIN}`)

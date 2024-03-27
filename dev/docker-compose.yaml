@@ -27,6 +27,7 @@ services:
        wait-for-it --host=mysql --port=3306 --strict --
        cake initialize_database &&
        cake less generate &&
+       cake speech_generate &&
        apache2-foreground'
     depends_on:
       - mysql

@@ -197,7 +197,9 @@ services:
       - internal
 
   shl-creator:
-    image: ghcr.io/uwcirg/shl-ips:${SHL_CREATOR_IMAGE_TAG:-latest}
+    image: ghcr.io/uwcirg/shl-ltt:${SHL_CREATOR_IMAGE_TAG:-latest}
+    env_file:
+      shl-creator.env
     labels:
       - traefik.enable=true
       - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.rule=Host(`shl-creator.${BASE_DOMAIN}`)

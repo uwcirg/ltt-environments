@@ -202,6 +202,9 @@ services:
   shl-creator:
     image: ghcr.io/uwcirg/shl-ltt:${SHL_CREATOR_IMAGE_TAG:-latest}
     environment:
+      VITE_API_BASE: https://shl-server.${BASE_DOMAIN}/api
+      VITE_BACK_URL: https://${BASE_DOMAIN/pro_reports/clinic_report_inform
+      VITE_SOF_ISS: https://fhir-auth.${BASE_DOMAIN}/fhir
       VITE_OIDC_SERVER_BASE: https://keycloak.${BASE_DOMAIN}
       VITE_OIDC_LOGOUT_ENDPOINT: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/logout
       VITE_OIDC_CHECK_SESSION_IFRAME: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/login-status-iframe.html

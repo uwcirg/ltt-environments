@@ -208,7 +208,10 @@
          "oauth2.device.authorization.grant.enabled": "false",
          "client.secret.creation.time": "1703195110",
          "backchannel.logout.session.required": "true",
-         "backchannel.logout.revoke.offline.tokens": "false"
+         "backchannel.logout.revoke.offline.tokens": "false",
+         "backchannel.logout.url": "https://ubu.mcjustin.dev.cirg.uw.edu/auth/oidc/logoutCallback",
+         "post.logout.redirect.uris": "+",
+         "display.on.consent.screen": "false",
        },
        "authenticationFlowBindingOverrides": {},
        "fullScopeAllowed": true,

@@ -127,15 +127,15 @@
        "clientId": "shl_creator",
        "name": "SMART Health Links Creator",
        "description": "",
-       "rootUrl": "",
+       "rootUrl": "${KEYCLOAK_SHL_CREATOR_BASE}",
        "adminUrl": "",
-       "baseUrl": "",
+       "baseUrl": "${KEYCLOAK_SHL_CREATOR_BASE}",
        "surrogateAuthRequired": false,
        "enabled": true,
        "alwaysDisplayInConsole": false,
        "clientAuthenticatorType": "client-secret",
        "redirectUris": [
-         "*"
+         "/share"
        ],
        "webOrigins": [
          "*"
@@ -154,7 +154,9 @@
          "oidc.ciba.grant.enabled": "false",
          "oauth2.device.authorization.grant.enabled": "false",
          "backchannel.logout.session.required": "true",
-         "backchannel.logout.revoke.offline.tokens": "false"
+         "backchannel.logout.revoke.offline.tokens": "false",
+         "frontchannel.logout.url": "${KEYCLOAK_SHL_CREATOR_BASE}/logout",
+         "backchannel.logout.url": ""
        },
        "authenticationFlowBindingOverrides": {},
        "fullScopeAllowed": true,

@@ -153,6 +153,8 @@ services:
 
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+
+      KEYCLOAK_CPRO_BACKCHANNEL_LOGOUT_URL: https://${BASE_DOMAIN}/auth/oidc/logoutCallback
     env_file:
       - keycloak.env
     volumes:

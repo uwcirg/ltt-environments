@@ -207,6 +207,7 @@
          "oidc.ciba.grant.enabled": "false",
          "oauth2.device.authorization.grant.enabled": "false",
          "client.secret.creation.time": "1703195110",
+         "frontchannelLogout": "false",
          "backchannel.logout.session.required": "true",
          "backchannel.logout.revoke.offline.tokens": "false",
          "backchannel.logout.url": "${KEYCLOAK_CPRO_BACKCHANNEL_LOGOUT_URL}",

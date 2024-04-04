@@ -213,7 +213,7 @@
          "backchannel.logout.revoke.offline.tokens": "false",
          "backchannel.logout.url": "${KEYCLOAK_CPRO_BACKCHANNEL_LOGOUT_URL}",
          "post.logout.redirect.uris": "+",
-         "display.on.consent.screen": "false",
+         "display.on.consent.screen": "false"
        },
        "authenticationFlowBindingOverrides": {},
        "fullScopeAllowed": true,

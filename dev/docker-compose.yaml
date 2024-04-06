@@ -156,6 +156,7 @@ services:
 
       KEYCLOAK_CPRO_BACKCHANNEL_LOGOUT_URL: https://${BASE_DOMAIN}/auth/oidc/logoutCallback
       KEYCLOAK_SHL_CREATOR_BASE: https://shl-creator.${BASE_DOMAIN}
+      KEYCLOAK_CPRO_HOMEPAGE: https://${BASE_DOMAIN}
 
     env_file:
       - keycloak.env

@@ -45,9 +45,10 @@ services:
       - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.tls=true
       - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
 
-      # cPRO does not EXPOSE the ports it listens on, requiring explicit traefik configuration
-      # TODO add EXPOSE directive to Dockerfiles
-      - traefik.http.services.cpro-${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=80
+    # cPRO does not EXPOSE the ports it listens on
+    # TODO add EXPOSE directive to Dockerfiles
+    expose:
+      - 80
     networks:
       - ingress
       - internal
@@ -108,15 +109,14 @@ services:
         aliases:
           - fhir-internal
       ingress:
+    expose:
+      - 8080
     labels:
       - traefik.enable=true
       - traefik.http.routers.fhir-${COMPOSE_PROJECT_NAME}.rule=Host(`fhir.${BASE_DOMAIN}`)
       - traefik.http.routers.fhir-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
       - traefik.http.routers.fhir-${COMPOSE_PROJECT_NAME}.tls=true
       - traefik.http.routers.fhir-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
-
-      # Hapi does not EXPOSE the ports it listens on, requiring explicit traefik configuration
-      - traefik.http.services.fhir-${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=8080
 
   keycloak:
     # use tini as init

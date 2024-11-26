@@ -94,8 +94,6 @@ services:
       # allow direct assignment of resource IDs in any format
       hapi.fhir.client_id_strategy: ANY
 
-      hapi.fhir.server_address: https://fhir.${BASE_DOMAIN}/fhir/
-
       SPRING_CONFIG_LOCATION: file:///opt/application.yaml
     volumes:
       - ./config/fhir/application.yaml:/opt/application.yaml:ro

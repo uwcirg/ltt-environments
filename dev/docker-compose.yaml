@@ -93,6 +93,8 @@ services:
       hapi.fhir.bulk_import_enabled: "true"
       # allow direct assignment of resource IDs in any format
       hapi.fhir.client_id_strategy: ANY
+      # enable all endpoints for operational data
+      management.endpoints.web.exposure.include: "*"
 
     depends_on:
       - db

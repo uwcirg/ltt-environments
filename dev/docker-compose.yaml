@@ -81,26 +81,21 @@ services:
     networks:
       - internal
   fhir:
-    image: hapiproject/hapi:${FHIR_IMAGE_TAG:-v6.8.3}
+    image: hapiproject/hapi:${FHIR_IMAGE_TAG:-v7.6.0}
     environment:
       spring.datasource.url: jdbc:postgresql://db:5432/hapifhir
       spring.datasource.username: postgres
       spring.datasource.password: postgres
       spring.datasource.driverClassName: org.postgresql.Driver
-      spring.jpa.properties.hibernate.dialect: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgres94Dialect
+      spring.jpa.properties.hibernate.dialect: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect
 
       hapi.fhir.bulk_export_enabled: "true"
       hapi.fhir.bulk_import_enabled: "true"
-      # TODO remove when cascading delete generally available in FHIR REST API
-      hapi.fhir.enforce_referential_integrity_on_delete: "false"
       # allow direct assignment of resource IDs in any format
       hapi.fhir.client_id_strategy: ANY
+      # enable all endpoints for operational data
+      management.endpoints.web.exposure.include: "*"
 
-      hapi.fhir.server_address: https://fhir.${BASE_DOMAIN}/fhir/
-
-      SPRING_CONFIG_LOCATION: file:///opt/application.yaml
-    volumes:
-      - ./config/fhir/application.yaml:/opt/application.yaml:ro
     depends_on:
       - db
     networks:

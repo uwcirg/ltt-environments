@@ -79,7 +79,7 @@ services:
       # mount db creation script in place for bootstrap
       - ./config/db:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: pg_isready
+      test: pg_isready --username=postgres
       start_period: 2m
       timeout: 5s
     networks:

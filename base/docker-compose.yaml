@@ -1,0 +1,228 @@
+---
+services:
+  cpro:
+    image: ${DOCKER_REPOSITORY-glcr.cirg.uw.edu/svn/dhair2}:${CPRO_IMAGE_TAG:-master}
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-mysql://mysql:cPR0health@CIRG@mysql:3306/cpro}
+      SERVER_NAME: ${BASE_DOMAIN}
+      HTTPS: "true"
+      INSTANCE_ID: inform
+      SHL_MANAGER_URL: https://shl-creator.${BASE_DOMAIN}/share
+      OIDC_CLIENT_ID: ltt_cpro
+      # Keycloak base URL; TODO discover OIDC config from .well-known/openid-configuration
+      OIDC_AUTHZ_SERVER: https://keycloak.${BASE_DOMAIN}/realms/ltt
+
+      OIDC_AUTHORIZATION_ENDPOINT: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/auth
+      OIDC_TOKEN_ENDPOINT: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/token
+      OIDC_USERINFO_ENDPOINT: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/userinfo
+      # TODO set to authenticated endpoint after jwt-proxy added
+      FHIR_R4_SERVER_ENDPOINT: http://fhir-internal:8080/fhir/
+      # This serves as both a switch to include a second FHIR 'identifier', and as the 'system' to use for it.
+      FHIR_R4_EXTERNAL_ID_SYSTEM: https://keycloak.ltt.cirg.uw.edu
+    # workaround hardcoded hostname for mysql
+    # TODO make mysql hostname configurable
+    entrypoint: sh
+    command: -c '
+       wait-for-it --host=mysql --port=3306 --strict --
+       cake initialize_database &&
+       cake less generate &&
+       cake speech_generate &&
+       apache2-foreground'
+    depends_on:
+      - mysql
+    volumes:
+      - secure-data:/var/www/html/app/securedata
+      - tmp-data:/var/www/html/app/tmp
+    labels:
+      - traefik.enable=true
+      # Traefik will route requests with Host matching the SERVER_NAME environment variable (see .env)
+      - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.rule=Host(`${BASE_DOMAIN}`)
+
+      - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.cpro-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+
+    # cPRO does not EXPOSE the ports it listens on
+    # TODO add EXPOSE directive to Dockerfiles
+    expose:
+      - 80
+    networks:
+      - ingress
+      - internal
+  mysql:
+    image: mariadb:10.6
+    environment:
+      MYSQL_ROOT_PASSWORD: cPR0health@CIRG
+      MYSQL_DATABASE: cpro
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: cPR0health@CIRG
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command:
+      - mysqld
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb_compression_default=1
+      - --sql-mode=
+    networks:
+      - internal
+
+  db:
+    image: postgres:${POSTGRES_IMAGE_TAG:-16}
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # mount db creation script in place for bootstrap
+      - ./config/db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: pg_isready --username=postgres
+      start_period: 2m
+      timeout: 5s
+    networks:
+      - internal
+  fhir:
+    image: hapiproject/hapi:${FHIR_IMAGE_TAG:-v7.6.0}
+    environment:
+      spring.datasource.url: jdbc:postgresql://db:5432/hapifhir
+      spring.datasource.username: postgres
+      spring.datasource.password: postgres
+      spring.datasource.driverClassName: org.postgresql.Driver
+      spring.jpa.properties.hibernate.dialect: ca.uhn.fhir.jpa.model.dialect.HapiFhirPostgresDialect
+
+      hapi.fhir.bulk_export_enabled: "true"
+      hapi.fhir.bulk_import_enabled: "true"
+      # allow direct assignment of resource IDs in any format
+      hapi.fhir.client_id_strategy: ANY
+      # enable all endpoints for operational data
+      management.endpoints.web.exposure.include: "*"
+    volumes:
+      # docker image does not contain any appropriate HTTP client
+      # use busybox from host as `wget`
+      - /usr/bin/busybox:/usr/bin/wget:ro
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --spider
+        - --quiet
+        - http://localhost:8080/actuator/health
+      start_period: 2m
+    depends_on:
+      - db
+    networks:
+      internal:
+        aliases:
+          - fhir-internal
+    expose:
+      - 8080
+
+  keycloak:
+    # use tini as init
+    init: true
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_IMAGE_TAG:-22.0}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.rule=Host(`keycloak.${BASE_DOMAIN}`)
+      - traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.keycloak-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+    command:
+      # https://www.keycloak.org/server/importExport#_importing_a_realm_during_startup
+      # recent Keycloak releases do not allow importing the master realm on startup; use old properties as workaround
+      # https://github.com/keycloak/keycloak/issues/12544#issuecomment-1191846726
+      - -Dkeycloak.migration.action=import
+      - -Dkeycloak.migration.provider=dir
+      - -Dkeycloak.migration.dir=/opt/keycloak/data/import
+      - -Dkeycloak.migration.strategy=IGNORE_EXISTING
+      - -Dkeycloak.migration.replace-placeholders=true
+      - start
+      - --log-console-output=json
+    environment:
+      # https://www.keycloak.org/server/all-config
+      KC_DB: postgres
+      KC_DB_URL_HOST: db
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+
+      # https://www.keycloak.org/server/reverseproxy
+      KC_PROXY: edge
+      # trust traefik Host header validation
+      KC_HOSTNAME_STRICT: "false"
+
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+
+      KEYCLOAK_CPRO_BACKCHANNEL_LOGOUT_URL: https://${BASE_DOMAIN}/auth/oidc/logoutCallback
+      KEYCLOAK_SHL_CREATOR_BASE: https://shl-creator.${BASE_DOMAIN}
+      KEYCLOAK_SHL_CREATOR_LOGOUT_REDIRECT_URL: https://${BASE_DOMAIN}/users
+
+    volumes:
+      - ./config/keycloak/import/:/opt/keycloak/data/import:ro
+      - ./config/keycloak/themes/:/opt/keycloak/themes:ro
+    depends_on:
+      - db
+    networks:
+      - ingress
+      - internal
+
+  fhir-auth:
+    image: ghcr.io/uwcirg/jwt-proxy:${PROXY_IMAGE_TAG:-latest}
+    environment:
+      UPSTREAM_SERVER: http://fhir-internal:8080
+      OIDC_AUTHORIZE_URL: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/auth
+      OIDC_TOKEN_URI: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/token
+      OIDC_TOKEN_INTROSPECTION_URI: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/token/introspect
+      JWKS_URL: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/certs
+      PATH_WHITELIST: /fhir/metadata,/fhir/.well-known/smart-configuration
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.fhir-auth-${COMPOSE_PROJECT_NAME}.rule=Host(`fhir-auth.${BASE_DOMAIN}`)
+      - traefik.http.routers.fhir-auth-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.fhir-auth-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+
+      # TODO review if necessary for shl-creator service in same deploy
+      # add CORS middleware, configured to return `Access-Control-Allow-Origin: *`
+      # NB accessControlAllowOrigin is deprecated, but not noted in docs
+      # https://github.com/traefik/traefik/issues/8796
+      - traefik.http.middlewares.fhir-auth-${COMPOSE_PROJECT_NAME}-cors.headers.accessControlAllowOriginList=*
+      # allow all verbs used by FHIR REST
+      - traefik.http.middlewares.fhir-auth-${COMPOSE_PROJECT_NAME}-cors.headers.accessControlAllowMethods=HEAD,GET,OPTIONS,PATCH,POST,PUT,DELETE
+      - traefik.http.middlewares.fhir-auth-${COMPOSE_PROJECT_NAME}-cors.headers.accessControlAllowHeaders=Authorization,Origin,Content-Type,Accept,Cache-Control
+      - traefik.http.routers.fhir-auth-${COMPOSE_PROJECT_NAME}.middlewares=fhir-auth-${COMPOSE_PROJECT_NAME}-cors
+    depends_on:
+      - fhir
+    networks:
+      - ingress
+      - internal
+
+  shl-creator:
+    image: ghcr.io/uwcirg/shl-ltt:${SHL_CREATOR_IMAGE_TAG:-latest}
+    environment:
+      VITE_API_BASE: https://shl-server.${BASE_DOMAIN}/api
+      VITE_BACK_URL: https://${BASE_DOMAIN}/pro_reports/clinic_report_inform
+      VITE_SOF_ISS: https://fhir-auth.${BASE_DOMAIN}/fhir
+      VITE_OIDC_SERVER_BASE: https://keycloak.${BASE_DOMAIN}
+      VITE_OIDC_LOGOUT_ENDPOINT: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/logout
+      VITE_OIDC_CHECK_SESSION_IFRAME: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/login-status-iframe.html
+      VITE_POST_LOGOUT_REDIRECT_URI: https://${BASE_DOMAIN}/users
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.rule=Host(`shl-creator.${BASE_DOMAIN}`)
+      - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+    networks:
+      - ingress
+
+  shl-server:
+    image: ghcr.io/uwcirg/shl-ltt-server:${SHL_SERVER_IMAGE_TAG:-latest}
+    environment:
+      PUBLIC_URL: https://shl-server.${BASE_DOMAIN}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.rule=Host(`shl-server.${BASE_DOMAIN}`)
+      - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.shl-server-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+    volumes:
+      - shl-server-data:/app/db
+    networks:
+      - ingress

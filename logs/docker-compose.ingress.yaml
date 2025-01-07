@@ -1,6 +1,10 @@
 ---
 services:
   postgrest:
+    extends:
+      file: ./logserver/docker-compose.yaml
+      service: postgrest
+
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.logserver-${COMPOSE_PROJECT_NAME}.rule=Host(`logs.${BASE_DOMAIN:-localtest.me}`)"
@@ -19,11 +23,12 @@ services:
           - postgrest-internal-${COMPOSE_PROJECT_NAME}
       ingress:
 
-
   postgres:
+    extends:
+      file: ./logserver/docker-compose.yaml
+      service: postgres
     networks:
       - internal
-
 
   oidc-proxy:
     # TODO replace with better-maintained oauth2-proxy

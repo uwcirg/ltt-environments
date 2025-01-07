@@ -6,11 +6,17 @@ services:
       service: postgrest
     labels:
       - traefik.enable=true
-      - traefik.http.routers.logserver-${COMPOSE_PROJECT_NAME}.rule=Host(`logs.${BASE_DOMAIN}`)
-      - traefik.http.routers.logserver-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
-      - traefik.http.routers.logserver-${COMPOSE_PROJECT_NAME}.middlewares=oidc-auth-${COMPOSE_PROJECT_NAME}
-      - traefik.http.routers.logserver-${COMPOSE_PROJECT_NAME}.tls=true
-      - traefik.http.routers.logserver-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+      - traefik.http.routers.logserver-auth-${COMPOSE_PROJECT_NAME}.rule=Method(`GET`) && Host(`logs.${BASE_DOMAIN}`)
+      - traefik.http.routers.logserver-auth-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.logserver-auth-${COMPOSE_PROJECT_NAME}.middlewares=oidc-auth-${COMPOSE_PROJECT_NAME}
+      - traefik.http.routers.logserver-auth-${COMPOSE_PROJECT_NAME}.tls=true
+      - traefik.http.routers.logserver-auth-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
+
+      # POST requests to /events are authenticated by postgrest JWT
+      - traefik.http.routers.logserver-unauth-${COMPOSE_PROJECT_NAME}.rule=Method(`POST`) && Host(`logs.${BASE_DOMAIN}`)
+      - traefik.http.routers.logserver-unauth-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
+      - traefik.http.routers.logserver-unauth-${COMPOSE_PROJECT_NAME}.tls=true
+      - traefik.http.routers.logserver-unauth-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
     networks:
       internal:
         aliases:
@@ -29,10 +35,6 @@ services:
     # oauth2-proxy does not EXPOSE (advertise) the ports it listens on in its docker image
     expose:
       - 4180
-    # command:
-      # POST requests to /events are authenticated by postgrest JWT
-      # - --rule.post-events.action=allow
-      # - --rule.post-events.rule=PathPrefix(`/events`) && Method(`POST`)
     environment:
       OAUTH2_PROXY_CLIENT_ID: logs_oauth2_proxy
       OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180

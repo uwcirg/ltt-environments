@@ -34,6 +34,7 @@ services:
       # - --rule.post-events.action=allow
       # - --rule.post-events.rule=PathPrefix(`/events`) && Method(`POST`)
     environment:
+      OAUTH2_PROXY_CLIENT_ID: logs_oauth2_proxy
       OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
       OAUTH2_PROXY_REVERSE_PROXY: "true"
 
@@ -52,19 +53,17 @@ services:
       OAUTH2_PROXY_COOKIE_REFRESH: 1m
       OAUTH2_PROXY_EMAIL_DOMAINS: "*"
       OAUTH2_PROXY_INSECURE_OIDC_ALLOW_UNVERIFIED_EMAIL: "true"
-      # TODO test how leaf handles usernames that are not email addresses
-      # base session cookie on Keycloak username (email not always set in Keycloak)
+      OAUTH2_PROXY_OIDC_ISSUER_URL: https://keycloak.${BASE_DOMAIN}/realms/ltt
       OAUTH2_PROXY_USER_ID_CLAIM: preferred_username
 
       # OIDC integration settings
       OAUTH2_PROXY_PROVIDER: oidc
       OAUTH2_PROXY_SCOPE: openid profile email
-      OAUTH2_PROXY_OIDC_ISSUER_URL: ${OAUTH2_PROXY_OIDC_ISSUER_URL}
-      OAUTH2_PROXY_CLIENT_ID: ${OAUTH2_PROXY_CLIENT_ID}
       OAUTH2_PROXY_CLIENT_SECRET: ${OAUTH2_PROXY_CLIENT_SECRET}
+
     labels:
       - traefik.enable=true
-      - traefik.http.routers.auth-proxy-${COMPOSE_PROJECT_NAME}.rule=Host(`auth-proxy.${BASE_DOMAIN}`) || (PathPrefix(`/oauth2`) && Host(`${BASE_DOMAIN}`))
+      - traefik.http.routers.auth-proxy-${COMPOSE_PROJECT_NAME}.rule=Host(`auth-proxy.${BASE_DOMAIN}`) || (PathPrefix(`/oauth2`) && (Host(`${BASE_DOMAIN}`) || HostRegexp(`{subdomain:.+}.${BASE_DOMAIN}`)))
 
       - traefik.http.routers.auth-proxy-${COMPOSE_PROJECT_NAME}.entrypoints=websecure
       - traefik.http.routers.auth-proxy-${COMPOSE_PROJECT_NAME}.tls.certresolver=letsencrypt
@@ -73,11 +72,6 @@ services:
       - traefik.http.middlewares.oidc-auth-${COMPOSE_PROJECT_NAME}.forwardAuth.address=http://auth-proxy-${COMPOSE_PROJECT_NAME}:4180/
       - traefik.http.middlewares.oidc-auth-${COMPOSE_PROJECT_NAME}.forwardAuth.trustForwardHeader=true
       - traefik.http.middlewares.oidc-auth-${COMPOSE_PROJECT_NAME}.forwardAuth.authResponseHeaders=X-Auth-Request-User,X-Auth-Request-Email,X-Auth-Request-Access-Token,Authorization
-
-      # TODO dynamically look up from OIDC tokens
-      # add Leaf group to all users via HTTP request header; see appsettings.json for available roles
-      - traefik.http.middlewares.leaf-groups-${COMPOSE_PROJECT_NAME}.headers.customrequestheaders.gws-groups=leaf_users
-
     networks:
       ingress:
         aliases:
@@ -86,6 +80,9 @@ services:
 
 
 
+
+volumes:
+  postgres-data: {}
 
 networks:
   # internal network for backing services

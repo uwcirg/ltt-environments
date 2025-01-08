@@ -1,6 +1,5 @@
 # docker-compose development overrides
 ---
-version: '3.9'
 services:
   cpro:
     environment:

@@ -1,7 +1,7 @@
 ---
 services:
   cpro:
-    image: ${DOCKER_REPOSITORY-glcr.cirg.uw.edu/svn/dhair2}:${CPRO_IMAGE_TAG:-master}
+    image: ${DOCKER_REPOSITORY-glcr.cirg.uw.edu/svn/dhair2}:${CPRO_IMAGE_TAG:-master-php5}
     environment:
       DATABASE_URL: ${DATABASE_URL:-mysql://mysql:cPR0health@CIRG@mysql:3306/cpro}
       SERVER_NAME: ${BASE_DOMAIN}

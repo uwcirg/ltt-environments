@@ -6,6 +6,8 @@ services:
       service: cpro
     env_file:
       - cpro.env
+    depends_on:
+      - mysql
   mysql:
     extends:
       file: ../base/docker-compose.yaml
@@ -20,6 +22,8 @@ services:
     extends:
       file: ../base/docker-compose.yaml
       service: fhir
+    depends_on:
+      - db
     # expose HAPI to internet
     networks:
       ingress:
@@ -35,11 +39,15 @@ services:
       service: keycloak
     env_file:
       - keycloak.env
+    depends_on:
+      - db
 
   fhir-auth:
     extends:
       file: ../base/docker-compose.yaml
       service: fhir-auth
+    depends_on:
+      - fhir
 
   shl-creator:
     extends:

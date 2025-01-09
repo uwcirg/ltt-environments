@@ -1,7 +1,7 @@
 ---
 services:
   cpro:
-    image: ${DOCKER_REPOSITORY-glcr.cirg.uw.edu/svn/dhair2}:${CPRO_IMAGE_TAG:-master}
+    image: ${DOCKER_REPOSITORY-glcr.cirg.uw.edu/svn/dhair2}:${CPRO_IMAGE_TAG:-master-php5}
     environment:
       DATABASE_URL: ${DATABASE_URL:-mysql://mysql:cPR0health@CIRG@mysql:3306/cpro}
       SERVER_NAME: ${BASE_DOMAIN}
@@ -28,8 +28,6 @@ services:
        cake less generate &&
        cake speech_generate &&
        apache2-foreground'
-    depends_on:
-      - mysql
     volumes:
       - secure-data:/var/www/html/app/securedata
       - tmp-data:/var/www/html/app/tmp
@@ -108,8 +106,6 @@ services:
         - --quiet
         - http://localhost:8080/actuator/health
       start_period: 2m
-    depends_on:
-      - db
     networks:
       internal:
         aliases:
@@ -159,8 +155,6 @@ services:
     volumes:
       - ./config/keycloak/import/:/opt/keycloak/data/import:ro
       - ./config/keycloak/themes/:/opt/keycloak/themes:ro
-    depends_on:
-      - db
     networks:
       - ingress
       - internal
@@ -189,8 +183,6 @@ services:
       - traefik.http.middlewares.fhir-auth-${COMPOSE_PROJECT_NAME}-cors.headers.accessControlAllowMethods=HEAD,GET,OPTIONS,PATCH,POST,PUT,DELETE
       - traefik.http.middlewares.fhir-auth-${COMPOSE_PROJECT_NAME}-cors.headers.accessControlAllowHeaders=Authorization,Origin,Content-Type,Accept,Cache-Control
       - traefik.http.routers.fhir-auth-${COMPOSE_PROJECT_NAME}.middlewares=fhir-auth-${COMPOSE_PROJECT_NAME}-cors
-    depends_on:
-      - fhir
     networks:
       - ingress
       - internal

@@ -17,4 +17,4 @@ Modify the `.env` file as necessary. Lines that are not commented-out are requir
 ## Deploy
 To pull the latest configured docker images, and re-deploy services as necessary, run the following command:
 
-    docker-compose pull && docker-compose up --detach
+    docker compose pull && docker compose up --detach

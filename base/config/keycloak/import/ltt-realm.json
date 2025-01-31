@@ -158,7 +158,7 @@
          "backchannel.logout.revoke.offline.tokens": "false",
          "frontchannel.logout.url": "${KEYCLOAK_SHL_CREATOR_BASE}/logout",
          "backchannel.logout.url": "",
-         "post.logout.redirect.uris": "${KEYCLOAK_CPRO_LANDING_PAGE}"
+         "post.logout.redirect.uris": "${KEYCLOAK_SHL_CREATOR_LOGOUT_REDIRECT_URL}"
        },
        "authenticationFlowBindingOverrides": {},
        "fullScopeAllowed": true,

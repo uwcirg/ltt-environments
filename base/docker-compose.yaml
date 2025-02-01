@@ -197,6 +197,8 @@ services:
       VITE_OIDC_LOGOUT_ENDPOINT: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/logout
       VITE_OIDC_CHECK_SESSION_IFRAME: https://keycloak.${BASE_DOMAIN}/realms/ltt/protocol/openid-connect/login-status-iframe.html
       VITE_POST_LOGOUT_REDIRECT_URI: https://${BASE_DOMAIN}/users
+      VITE_LOG_URL: https://shl-server.${BASE_DOMAIN}/api/log
+      VITE_SYSTEM_URL: https://shl-creator.${BASE_DOMAIN}
     labels:
       - traefik.enable=true
       - traefik.http.routers.shl-creator-${COMPOSE_PROJECT_NAME}.rule=Host(`shl-creator.${BASE_DOMAIN}`)

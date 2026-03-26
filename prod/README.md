@@ -1,5 +1,5 @@
 # Production Configuration
-Sets up a production copy of Let's Talk Tech environments
+Sets up a production copy of Take on Transplant environments
 
 ## Setup
 Copy the default env files:

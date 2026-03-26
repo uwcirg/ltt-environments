@@ -38,7 +38,7 @@
 <body class="${properties.kcBodyClass!}">
     <div class="${properties.kcLoginClass!}">
         <header id="header">
-            <img src="${url.resourcesPath}/img/logo.svg" alt="Let's Talk Tech logo">
+            <img src="${url.resourcesPath}/img/logo.svg" alt="Take on Transplant logo">
         </header>
         <div id="kc-header" class="${properties.kcHeaderClass!}">
             <div id="kc-header-wrapper" class="${properties.kcHeaderWrapperClass!}">

@@ -55,7 +55,7 @@ services:
       OAUTH2_PROXY_COOKIE_REFRESH: 1m
       OAUTH2_PROXY_EMAIL_DOMAINS: "*"
       OAUTH2_PROXY_INSECURE_OIDC_ALLOW_UNVERIFIED_EMAIL: "true"
-      OAUTH2_PROXY_OIDC_ISSUER_URL: https://keycloak.${BASE_DOMAIN}/realms/ltt
+      OAUTH2_PROXY_OIDC_ISSUER_URL: https://keycloak.${BASE_DOMAIN}/realms/tot
       OAUTH2_PROXY_USER_ID_CLAIM: preferred_username
 
       # OIDC integration settings

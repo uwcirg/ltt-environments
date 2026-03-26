@@ -1,7 +1,7 @@
 {
   "id": "25facb13-fdb5-46cd-b66d-fa9305652f1a",
-  "realm": "ltt",
-  "displayName": "Let's Talk Tech",
+  "realm": "tot",
+  "displayName": "Take on Transplant",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,
@@ -46,7 +46,7 @@
   "failureFactor": 30,
   "defaultRole": {
     "id": "0f25599f-05d1-4859-895d-e097d2b8bc4d",
-    "name": "default-roles-ltt",
+    "name": "default-roles-tot",
     "description": "${role_default-roles}",
     "composite": true,
     "clientRole": false,
@@ -181,8 +181,8 @@
        ]
      },
      {
-       "clientId": "ltt_cpro",
-       "name": "cPRO Let's Talk Tech",
+       "clientId": "tot_cpro",
+       "name": "cPRO Take on Transplant",
        "description": "cPRO configured as inform project",
        "rootUrl": "",
        "adminUrl": "",
@@ -191,7 +191,7 @@
        "enabled": true,
        "alwaysDisplayInConsole": false,
        "clientAuthenticatorType": "client-secret",
-       "secret": "${KEYCLOAK_LTT_CPRO_CLIENT_SECRET}",
+       "secret": "${KEYCLOAK_TOT_CPRO_CLIENT_SECRET}",
        "redirectUris": [
          "*"
        ],
@@ -250,7 +250,7 @@
        "enabled": true,
        "alwaysDisplayInConsole": false,
        "clientAuthenticatorType": "client-secret",
-       "secret": "${KEYCLOAK_LTT_LOGS_CLIENT_SECRET}",
+       "secret": "${KEYCLOAK_TOT_LOGS_CLIENT_SECRET}",
        "redirectUris": [
          "*"
        ],
@@ -878,8 +878,8 @@
     "user": "${KEYCLOAK_EMAIL_USER}",
     "password": "${KEYCLOAK_EMAIL_PASSWORD}"
   },
-  "loginTheme": "ltt",
-  "emailTheme": "ltt",
+  "loginTheme": "tot",
+  "emailTheme": "tot",
   "eventsEnabled": false,
   "eventsListeners": [
     "jboss-logging"

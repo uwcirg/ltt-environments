@@ -1,5 +1,5 @@
 # Development Configuration
-Sets up a development copy of Take on Transplant environments
+Sets up a development copy of Let's Talk Tech environments
 
 ## Setup
 Copy the default env files:
